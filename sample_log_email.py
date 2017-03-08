@@ -91,7 +91,7 @@ def copy_Ref(path,ref_path,last_time):
 			new_raw_file_name = file.path.split('/')[-1]
 			new_raw_file_name_list.append(new_raw_file_name)
 	
-	message = '\n'.join(ew_raw_file_name_list)
+	message = '\n'.join(new_raw_file_name_list)
 	cmd = "echo '%s' | mail -s 'new raw files' shaungarnett@gmail.com" %(message)
 	print cmd
 
