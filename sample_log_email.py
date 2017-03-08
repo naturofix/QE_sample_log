@@ -63,6 +63,10 @@ def copy_Ref(path,ref_path,last_time):
 		for root, dirnames, filenames in os.walk(month_path):
   			for filename in fnmatch.filter(filenames, file_name):
 				refs.append(os.path.join(root, filename))
+
+
+
+
 	
 
 	for file_path in refs:
@@ -72,6 +76,26 @@ def copy_Ref(path,ref_path,last_time):
 			cmd = 'cp %s %s' %(file_path, ref_month_path)
 			print(cmd)
 			os.system(cmd)
+
+	file_list = ['*.raw']
+	raw_files = []
+	for file_name in file_list:
+		for root, dirnames, filenames in os.walk(month_path):
+  			for filename in fnmatch.filter(filenames, file_name):
+				raw_files.append(os.path.join(root, filename))
+	new_raw_file_name_list = []
+	for file_path in raw_files:
+		#print file_path
+		file_time = os.path.getmtime(file_path)
+		if file_time > last_time:
+			new_raw_file_name = file.path.split('/')[-1]
+			new_raw_file_name_list.append(new_raw_file_name)
+	
+	message = '\n'.join(ew_raw_file_name_list)
+	cmd = "echo '%s' | mail -s 'new raw files' shaungarnett@gmail.com" %(message)
+	print cmd
+
+
 
 			#raw_input('hit')
 	#raw_input()
