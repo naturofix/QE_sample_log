@@ -88,7 +88,7 @@ def copy_Ref(path,ref_path,last_time):
 		#print file_path
 		file_time = os.path.getmtime(file_path)
 		if file_time > last_time:
-			new_raw_file_name = file.path.split('/')[-1]
+			new_raw_file_name = file_path.split('/')[-1]
 			new_raw_file_name_list.append(new_raw_file_name)
 	
 	message = '\n'.join(new_raw_file_name_list)
