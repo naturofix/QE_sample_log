@@ -90,11 +90,13 @@ def copy_Ref(path,ref_path,last_time):
 		if file_time > last_time:
 			new_raw_file_name = file_path.split('/')[-1]
 			new_raw_file_name_list.append(new_raw_file_name)
-	
-	message = '\n'.join(new_raw_file_name_list)
-	cmd = "echo '%s' | mail -s 'new raw files' shaungarnett@gmail.com" %(message)
-	print cmd
-	os.system(cmd)
+	print new_raw_file_name_list
+	print('new raw files : %s' %len(new_raw_file_name_list))
+	if(len(new_raw_file_name_list) > 1):
+		message = '\n'.join(new_raw_file_name_list)
+		cmd = "echo '%s' | mail -s 'new raw files' shaungarnett@gmail.com" %(message)
+		print cmd
+		os.system(cmd)
 
 
 
@@ -130,6 +132,10 @@ for entry in read_list:
 	email_list.append(entry.replace('\n','').replace('\r',''))
 email_line = ','.join(email_list)
 developer_email_line = 'shaungarnett@gmail.com'
+
+
+#STOP THE SCRIPT email going out to everyone
+#email_line = developer_email_line
 #print email_line
 #raw_input()
 
@@ -479,89 +485,107 @@ if ref_hit == 0:
 
 ######### MQ SUMMARY - summary ###############
 
-print '\n\nSummarising the Summary files\n'
-print ref_path
-refs = []
-for root, dirnames, filenames in os.walk(ref_path):
-  for filename in fnmatch.filter(filenames, 'summary.txt'):
-    refs.append(os.path.join(root, filename))
+run_mq_summary = True
+summary_file = True
+summary_db = True
+
+if run_mq_summary == True:
+	print '\n\nSummarising the Summary files\n'
+	print ref_path
+	refs = []
+	for root, dirnames, filenames in os.walk(ref_path):
+	  for filename in fnmatch.filter(filenames, 'summary.txt'):
+	    refs.append(os.path.join(root, filename))
 
 
-summary_hit = 0
-time_list = []
-for file_path in refs:
-	file_time = os.path.getmtime(file_path)
-	time_list.append(file_time)
-	if file_time > last_time:
-		summary_hit = 1
-#summary_hit = 1
-if summary_hit == 1:
-	cmd = 'python /mnt/BLACKBURNLAB/scripts/QC/QC_summary.py /mnt/BLACKBURNLAB/QC/Reference/ %s' %(last_time)
-	print cmd
+	summary_hit = 0
+	time_list = []
+	for file_path in refs:
+		file_time = os.path.getmtime(file_path)
+		time_list.append(file_time)
+		if file_time > last_time:
+			summary_hit = 1
+	#summary_hit = 1
+	if summary_hit == 1:
+		if summary_file == True:
+			cmd = 'python /mnt/BLACKBURNLAB/scripts/QC/QC_summary.py /mnt/BLACKBURNLAB/QC/Reference/ %s' %(last_time)
+			print cmd
 
-	#p = subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-	os.system(cmd)
-	file_1 = '/mnt/BLACKBURNLAB/QC/Reference/summary/Peptide.Sequences.Identified_email.png'
-	file_2 = '/mnt/BLACKBURNLAB/QC/Reference/summary/RAW_email.png'
-	for summary_file_name in [file_1]:
-		print_file_name = summary_file_name.split('/')[-1]
-		message = """
-		Image generated from the MaxQuant summary.txt file for the Reference Samples
-		
-		An interactive R Shiny app can be found at
+			#p = subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+			os.system(cmd)
+			file_1 = '/mnt/BLACKBURNLAB/QC/Reference/summary/Peptide.Sequences.Identified_email.png'
+			file_2 = '/mnt/BLACKBURNLAB/QC/Reference/summary/RAW_email.png'
+			for summary_file_name in [file_1]:
+				print_file_name = summary_file_name.split('/')[-1]
+				message = """
+				Image generated from the MaxQuant summary.txt file for the Reference Samples
+				
+				An interactive R Shiny app can be found at
 
-		http://watson:3838/MQ_summary.Rmd
-		Horizontal lines
-		green 		 	: maximum for C1 600ng
-		lightgreen 	 	: 80% of maximum for C1
-		greenyellow 	: mean for C1 600ng
+				http://watson:3838/MQ_summary.Rmd
+				Horizontal lines
+				green 		 	: maximum for C1 600ng
+				lightgreen 	 	: 80% of maximum for C1
+				greenyellow 	: mean for C1 600ng
 
-		red 			: maximum for C2 600ng
-		lightcoral 		: 80% of maximum for C2
-		magenta 		: mean for C1 600ng 
-		"""
+				red 			: maximum for C2 600ng
+				lightcoral 		: 80% of maximum for C2
+				magenta 		: mean for C1 600ng 
+				"""
 
-		cmd = "echo '%s' | mail -s 'MaxQuant summary.txt' -a %s -a %s %s" %(message,file_1,file_2,email_line)
-		print cmd
-		#if test != 'test':
-		os.system(cmd)
-else:
-	print 'no new summmary.txt file since \t:\t%s' %(datetime.datetime.fromtimestamp(int(max(time_list))).strftime('%d %B %Y : %H %M'))
-	#print max(time_list)
+				cmd = "echo '%s' | mail -s 'MaxQuant summary.txt' -a %s -a %s %s" %(message,file_1,file_2,email_line)
+				print cmd
+				#if test != 'test':
+				os.system(cmd)
+		#raw_input('1')
+		if summary_db == True:
+			cmd = 'python /mnt/BLACKBURNLAB/scripts/QC/QC_summary_db.py /mnt/BLACKBURNLAB/QC/Reference/ %s' %(last_time)
+			print cmd
+			#raw_input('2')
+			os.system(cmd)
+			#raw_input('3')
+
+
+	else:
+		print 'no new summmary.txt file since \t:\t%s' %(datetime.datetime.fromtimestamp(int(max(time_list))).strftime('%d %B %Y : %H %M'))
+		#print max(time_list)
 
 #raw_input('MQ - summary')
 ##### Calibration Summary  ##########
+run_cal = False
+#run_cal = True
+if run_cal == True:
 
-# print '\n\nSummarising the Calibration Log files\n'
-# calibration_path = '/blackburn3/RAW_Data/Q_Exactive_2014/Xcalibur/system/Exactive/log'
-# refs = []
-# for root, dirnames, filenames in os.walk(calibration_path):
-#   for filename in fnmatch.filter(filenames, 'Thermo*'):
-#     refs.append(os.path.join(root, filename))
+	print '\n\nSummarising the Calibration Log files\n'
+	calibration_path = '/blackburn3/RAW_Data/Q_Exactive_2014/Xcalibur/system/Exactive/log'
+	refs = []
+	for root, dirnames, filenames in os.walk(calibration_path):
+	  for filename in fnmatch.filter(filenames, 'Thermo*'):
+	    refs.append(os.path.join(root, filename))
 
-# #print refs
-# time_list = []
-# for file_path in refs:
-# 	file_time = os.path.getmtime(file_path)
-# 	time_list.append(file_time)
-# 	if file_time > last_time:
-# 		summary_hit = 1
+	#print refs
+	time_list = []
+	for file_path in refs:
+		file_time = os.path.getmtime(file_path)
+		time_list.append(file_time)
+		if file_time > last_time:
+			summary_hit = 1
 
-# #summary_hit = 1
-# if summary_hit == 1:
-# 	cmd = 'python /mnt/BLACKBURNLAB/scripts/QC/run_calibration_summary.py /mnt/BLACKBURNLAB/scripts/QC/ /mnt/BLACKBURNLAB/QC/QE_calibration/ %s' %(last_time)
-# 	print(cmd)
-# 	os.system(cmd)
-# 	message = """
-# 	Summary of the information in Xcalibur/system/Exactive/log/Thermo Exactive ...
-# 	"""
-# 	calibration_summary_file_name = '/mnt/BLACKBURNLAB/QC/QE_calibration/calibration.pdf'
-# 	cmd = "echo '%s' | mail -s 'MaxQuant summary.txt' -a %s %s" %(message,calibration_summary_file_name,'shaungarnett@gmail.com')
-# 	print cmd
-# 	#if test != 'test':
-# 	#	os.system(cmd)
-# else:
-# 	print 'no new calibration log file since \t:\t%s' %(datetime.datetime.fromtimestamp(int(max(time_list))).strftime('%d %B %Y : %H %M'))
+	#summary_hit = 1
+	if summary_hit == 1:
+		cmd = 'python /mnt/BLACKBURNLAB/scripts/QC/run_calibration_summary.py /mnt/BLACKBURNLAB/scripts/QC/ /mnt/BLACKBURNLAB/QC/QE_calibration/ %s' %(last_time)
+		print(cmd)
+		os.system(cmd)
+		message = """
+		Summary of the information in Xcalibur/system/Exactive/log/Thermo Exactive ...
+		"""
+		calibration_summary_file_name = '/mnt/BLACKBURNLAB/QC/QE_calibration/calibration.pdf'
+		cmd = "echo '%s' | mail -s 'MaxQuant summary.txt' -a %s %s" %(message,calibration_summary_file_name,'shaungarnett@gmail.com')
+		print cmd
+		#if test != 'test':
+		#	os.system(cmd)
+	else:
+		print 'no new calibration log file since \t:\t%s' %(datetime.datetime.fromtimestamp(int(max(time_list))).strftime('%d %B %Y : %H %M'))
 
 
 
